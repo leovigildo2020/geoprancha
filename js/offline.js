@@ -7,7 +7,19 @@ const TILE_CACHE='gp-tiles-v1';
 const NO_BULK=new Set(['osm','otm','carto_claro','carto_escuro']); // políticas desses serviços proíbem download em massa
 let installEvt=null;
 function swAllowed(){ return 'serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)); }
-if(swAllowed()){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').then(r=>{ r.addEventListener('updatefound',()=>{ const w=r.installing; w&&w.addEventListener('statechange',()=>{ if(w.state==='installed'&&navigator.serviceWorker.controller) toast('Nova versão do GeoPrancha disponível. Feche e reabra o app para atualizar.',7000); }); }); }).catch(e=>console.warn('SW',e)); }); }
+const APP_OPENED=Date.now();
+if(swAllowed()){ const hadController=!!navigator.serviceWorker.controller; let reloading=false;
+  // Quando uma versão nova termina de instalar, recarrega para usar só arquivos da versão nova.
+  navigator.serviceWorker.addEventListener('controllerchange',async()=>{ if(!hadController||reloading) return; reloading=true;
+    try{ clearTimeout(saveT); if(typeof persistProject==='function') await persistProject(); }catch(e){}
+    const busyNow=(typeof I!=='undefined'&&I.sketch)||document.querySelector('.modal-bg');
+    if(busyNow&&Date.now()-APP_OPENED>30000){ showUpdateBar(); return; }
+    location.reload(); });
+  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').then(r=>{
+      const check=()=>{ r.update().catch(()=>{}); }; document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') check(); }); setInterval(check,30*60000);
+      r.addEventListener('updatefound',()=>{ const w=r.installing; w&&w.addEventListener('statechange',()=>{ if(w.state==='installed'&&navigator.serviceWorker.controller) toast('Baixando nova versão do GeoPrancha…',3000); }); });
+    }).catch(e=>console.warn('SW',e)); }); }
+function showUpdateBar(){ toast('Nova versão instalada. Termine o que está fazendo e toque aqui para atualizar.',60000); const t=$('#toast'); t.style.cursor='pointer'; t.onclick=()=>location.reload(); }
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; const b=$('[data-act="instalar"]'); b&&(b.disabled=false); });
 async function installApp(){ if(installEvt){ installEvt.prompt(); await installEvt.userChoice; installEvt=null; return; }
   modal({title:'Instalar o GeoPrancha no aparelho',body:`<ol style="margin:0;padding-left:20px;line-height:1.6"><li><b>Android (Chrome):</b> menu ⋮ › <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li><li><b>iPhone (Safari):</b> botão Compartilhar › <b>Adicionar à Tela de Início</b>.</li><li><b>Computador (Chrome/Edge):</b> ícone de instalação na barra de endereço.</li></ol><p class="note">${swAllowed()?'Depois de instalado, o app abre sem internet.':'A instalação só funciona quando o app é aberto pelo endereço HTTPS publicado (GitHub Pages).'}</p>`,buttons:[{label:'Entendi',primary:true}]}); }

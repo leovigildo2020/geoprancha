@@ -31,7 +31,7 @@ js/offline.js       registro do service worker, instalação PWA, download de ti
 js/projects.js      Meus projetos: vários projetos no IndexedDB (salvamento automático, rasters incluídos),
                     arquivo .geoprancha.json com imagens embutidas
 js/main.js          ligação da interface (ações, teclado, abas), projeto de exemplo, inicialização
-sw.js               cache do app (rede primeiro para HTML) e cache de tiles (cache primeiro)
+sw.js               cache do app (página e código sempre do mesmo cache da versão) e cache de tiles
 tools/build_single.py  gera dist/GeoPrancha.html em arquivo único (sem GPS/offline)
 tests/smoke_test.py    teste de ponta a ponta com Playwright
 ```
@@ -64,6 +64,8 @@ python3 tests/smoke_test.py --shots   # capturas em tests/output/
 Se o Chromium do Playwright não puder ser baixado no ambiente, ao menos rode `node --check js/*.js sw.js`.
 
 ## Cuidados
+
+- **Atualização do app:** o `sw.js` serve página e código sempre do cache da própria versão (nunca mistura versões) e baixa a versão nova com `cache:'reload'`, contornando o cache HTTP de 10 min do GitHub Pages. Quando o novo service worker assume, `offline.js` salva o projeto e recarrega a página. Não volte para “rede primeiro” só no HTML: isso misturava versões.
 
 - O GeoPDF depende do formato do PDF gerado pelo jsPDF 2.5.1. Se atualizar o jsPDF, rode o teste da prancha GeoPDF.
 - Mapas Google podem bloquear CORS. O app tenta um “modo compatível” automaticamente (`noCorsKeys` em `core.js`), e nesse caso a exportação de imagem com esse fundo falha.
