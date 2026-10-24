@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GeoPrancha</title>
+<meta name="description" content="GIS + CAD leve em português para plantas topográficas, arquitetônicas e medição em campo com GPS.">
+<meta name="theme-color" content="#19211f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="vendor/ol.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".6"/><path d="M6 8.5l6.5-3 6 4-2.2 8.8-8.6.2z" fill="#f2b630" fill-opacity=".25" stroke="#f2b630" stroke-width="1.8" stroke-linejoin="round"/><circle cx="6" cy="8.5" r="1.6" fill="#e0218a"/><circle cx="12.5" cy="5.5" r="1.6" fill="#e0218a"/><circle cx="18.5" cy="9.5" r="1.6" fill="#e0218a"/><circle cx="16.3" cy="18.3" r="1.6" fill="#e0218a"/><circle cx="7.7" cy="18.5" r="1.6" fill="#e0218a"/></svg><span>Geo<b>Prancha</b></span></div>
+  <input id="projName" class="projname" value="Projeto sem título" aria-label="Nome do projeto">
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="arquivo">Arquivo</button>
+    <button role="tab" data-tab="desenhar" aria-selected="true">Desenhar</button>
+    <button role="tab" data-tab="editar">Editar</button>
+    <button role="tab" data-tab="medir">Medir</button>
+    <button role="tab" data-tab="fundo">Mapa de fundo</button>
+    <button role="tab" data-tab="campo">Campo (GPS)</button>
+  </nav>
+  <div class="grow"></div>
+  <button class="iconbtn" id="btnTheme" title="Alternar tema claro/escuro" aria-label="Alternar tema"><svg class="i sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
+  <button class="btn-print" id="btnLayout" data-ic="layout" title="Compositor de impressão"><span>Compositor de impressão</span></button>
+</header>
+
+<div class="ribbon" id="ribbon">
+  <div class="rpanel" data-panel="arquivo" hidden>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="novo" data-ic="novo">Novo projeto</button>
+      <button class="rbtn" data-act="abrir" data-ic="abrir">Abrir projeto</button>
+      <button class="rbtn" data-act="salvar" data-ic="salvar">Salvar projeto</button>
+    </div><div class="cap">Projeto</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="importar" data-ic="importar">Importar dados</button>
+      <button class="rbtn" data-act="csv" data-ic="tabela">Coordenadas (CSV/TXT)</button>
+      <button class="rbtn" data-act="raster" data-ic="imagem">Imagem / GeoTIFF</button>
+    </div><div class="cap">Importar · SHP KML KMZ GeoJSON GPX</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="expvet" data-ic="exportar">Exportar vetores</button>
+      <button class="rbtn" data-act="expimg" data-ic="imagem">Exportar imagem</button>
+      <button class="rbtn" data-act="layout" data-ic="layout">Prancha PDF / GeoPDF</button>
+    </div><div class="cap">Exportar</div></div>
+  </div>
+
+  <div class="rpanel" data-panel="desenhar">
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-tool="select" data-ic="select">Selecionar</button>
+    </div><div class="cap">Seleção</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-tool="ponto" data-ic="ponto">Ponto</button>
+      <button class="rbtn" data-tool="linha" data-ic="linha">Linha</button>
+      <button class="rbtn" data-tool="poligono" data-ic="poligono">Polígono</button>
+      <button class="rbtn" data-tool="retangulo" data-ic="retangulo">Retângulo</button>
+      <button class="rbtn" data-tool="circulo" data-ic="circulo">Círculo</button>
+    </div><div class="cap">Desenho livre</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-tool="texto" data-ic="texto">Texto</button>
+      <button class="rbtn" data-tool="cota" data-ic="cota">Cota</button>
+    </div><div class="cap">Anotação</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="csv" data-ic="tabela">Por coordenadas</button>
+      <button class="rbtn" data-act="azdist" data-ic="azimute">Azimute e distância</button>
+      <button class="rbtn" data-act="retmed" data-ic="retmed">Retângulo por medidas</button>
+    </div><div class="cap">Entrada precisa</div></div>
+  </div>
+
+  <div class="rpanel" data-panel="editar" hidden>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-tool="select" data-ic="select">Selecionar</button>
+      <button class="rbtn" data-tool="vertices" data-ic="vertices">Editar vértices</button>
+      <button class="rbtn" data-tool="mover" data-ic="mover">Mover feição</button>
+      <button class="rbtn" data-act="duplicar" data-ic="duplicar">Duplicar</button>
+      <button class="rbtn" data-act="excluir" data-ic="excluir">Excluir</button>
+    </div><div class="cap">Feições</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="desfazer" data-ic="desfazer">Desfazer</button>
+      <button class="rbtn" data-act="refazer" data-ic="refazer">Refazer</button>
+    </div><div class="cap">Histórico</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="atributos" data-ic="atributos">Tabela de atributos</button>
+    </div><div class="cap">Dados</div></div>
+  </div>
+
+  <div class="rpanel" data-panel="medir" hidden>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-tool="mdist" data-ic="regua">Distância</button>
+      <button class="rbtn" data-tool="marea" data-ic="area">Área</button>
+      <button class="rbtn" data-tool="coord" data-ic="alvo">Coordenada</button>
+      <button class="rbtn" data-act="irpara" data-ic="irpara">Ir para coordenada</button>
+      <button class="rbtn" data-act="limparmed" data-ic="limpar">Limpar medições</button>
+    </div><div class="cap">Medições</div></div>
+  </div>
+
+  <div class="rpanel" data-panel="fundo" hidden>
+    <div class="rgroup"><div class="bmgrid" id="bmGrid"></div><div class="cap">Mapas base (estilo HCMGIS)</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="xyz" data-ic="xyz">Adicionar XYZ</button>
+      <button class="rbtn" data-act="raster" data-ic="imagem">Carregar imagem</button>
+    </div><div class="cap">Personalizado</div></div>
+  </div>
+  <div class="rpanel" data-panel="campo" hidden>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="gps" data-ic="gps">Caminhamento GPS</button>
+      <button class="rbtn" data-act="minhapos" data-ic="alvo">Minha posição</button>
+    </div><div class="cap">Medição em campo</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="offline" data-ic="nuvem">Mapa offline</button>
+      <button class="rbtn" data-act="instalar" data-ic="instalar">Instalar app</button>
+    </div><div class="cap">Uso sem internet</div></div>
+  </div>
+</div>
+
+<main class="work">
+  <aside id="left" class="side" aria-label="Camadas">
+    <section class="sec">
+      <h3><svg class="i sm" viewBox="0 0 24 24" data-ic-inline="camadas"></svg>Camadas<span class="grow"></span><button class="tb mob" data-act="closeLeft" aria-label="Fechar">✕</button></h3>
+      <ul class="layers" id="layerList"></ul>
+      <div class="ltools">
+        <button class="tb primary" data-act="novacamada">+ Nova camada</button>
+        <button class="tb" data-act="subir" title="Subir camada">▲</button>
+        <button class="tb" data-act="descer" title="Descer camada">▼</button>
+        <button class="tb" data-act="zoomcamada" title="Aproximar da camada">Zoom</button>
+        <button class="tb danger" data-act="excluircamada" id="btnDelLayer">Excluir</button>
+      </div>
+    </section>
+    <section class="sec">
+      <h3>Mapa de fundo</h3>
+      <div class="form">
+        <label for="bmSelect">Mapa</label><select id="bmSelect"></select>
+        <label for="bmOpacity">Opacidade</label><input type="range" id="bmOpacity" min="0" max="1" step="0.05" value="1">
+      </div>
+    </section>
+    <section class="sec" id="styleSec"></section>
+  </aside>
+
+  <section id="mapwrap">
+    <div id="map"></div>
+    <div class="hint" id="hint"></div>
+    <div class="cadbar" id="cadbar" hidden>
+      <span class="lab">Distância</span><input class="inp" id="cadDist" inputmode="decimal" placeholder="m">
+      <span class="lab">Azimute</span><input class="inp" id="cadAz" placeholder="ex.: 90 ou 45°30'">
+      <button class="tb primary" id="cadAddPolar">Adicionar</button>
+      <span class="vr"></span>
+      <span class="lab">E/X</span><input class="inp" id="cadE" inputmode="decimal">
+      <span class="lab">N/Y</span><input class="inp" id="cadN" inputmode="decimal">
+      <button class="tb" id="cadAddAbs">Ponto</button>
+      <span class="vr"></span>
+      <button class="tb" id="cadUndo">Desfazer vértice</button>
+      <button class="tb primary" id="cadFinish">Concluir</button>
+    </div>
+    <div class="gpspanel" id="gpsPanel" hidden></div>
+    <div class="attr" id="attr" hidden>
+      <header><span id="attrTitle">Tabela de atributos</span><span class="grow"></span><button class="tb" data-act="addcampo">+ Campo</button><button class="tb" data-act="atributos">Fechar</button></header>
+      <div class="wrap" id="attrWrap"></div>
+    </div>
+  </section>
+
+  <aside id="right" class="side" aria-label="Feição selecionada">
+    <section class="sec"><h3>Feição selecionada<span class="grow"></span><button class="tb mob" data-act="closeRight" aria-label="Fechar">✕</button></h3><div id="featPanel"></div></section>
+  </aside>
+</main>
+
+<footer class="status">
+  <button class="tog mob" data-act="openLeft">Camadas</button>
+  <span class="coord" id="coordOut">—</span>
+  <label>Escala 1:<input id="scaleIn" list="scaleList" size="8" aria-label="Escala"></label>
+  <datalist id="scaleList"></datalist>
+  <label>SRC <select id="crsSelect" aria-label="Sistema de referência"></select></label>
+  <button class="tog" id="tgSnap" aria-pressed="true" title="Atrair aos vértices e bordas">SNAP</button>
+  <button class="tog" id="tgOrtho" aria-pressed="false" title="Restringir a horizontal/vertical">ORTO</button>
+  <button class="tog" id="tgGridSnap" aria-pressed="false" title="Atrair à grade">GRADE</button>
+  <label>passo <input id="gridStep" type="number" min="0.01" step="any" value="1" style="width:64px"> m</label>
+  <button class="tog" id="tgShowGrid" aria-pressed="false" title="Exibir grade de coordenadas">EXIBIR GRADE</button>
+  <span class="grow"></span>
+  <button class="tog mob" data-act="openRight">Feição</button>
+</footer>
+
+<div class="lay" id="lay" hidden>
+  <div class="lay-top">
+    <button class="tb" id="layBack">← Voltar ao mapa</button>
+    <strong>Compositor de impressão</strong>
+    <span class="grow"></span>
+    <label class="note" style="margin:0">Resolução <select id="layDpi" class="inp" style="width:auto"><option>150</option><option selected>200</option><option>300</option></select> dpi</label>
+    <button class="tb" id="layPng">Exportar PNG</button>
+    <button class="tb" id="layPdf">Exportar PDF</button>
+    <button class="tb primary" id="layGeoPdf">Exportar GeoPDF</button>
+  </div>
+  <div class="lay-body">
+    <aside class="lay-side" id="laySide"></aside>
+    <div class="lay-stage" id="layStage"><canvas id="layCanvas"></canvas></div>
+  </div>
+</div>
+
+<input type="file" id="fileImport" multiple hidden accept=".zip,.shp,.dbf,.prj,.cpg,.shx,.kml,.kmz,.geojson,.json,.gpx,.csv,.txt,.tif,.tiff,.png,.jpg,.jpeg,.pgw,.jgw,.pngw,.jpgw,.wld,.tfw">
+<input type="file" id="fileProject" hidden accept=".json,.geoprancha">
+<div class="toast" id="toast" hidden></div>
+<div class="busy" id="busy" hidden><div><span class="spin"></span><span id="busyMsg">Processando…</span></div></div>
+
+<!-- Bibliotecas (cópias locais para funcionar offline) -->
+<script src="vendor/ol.js"></script>
+<script src="vendor/proj4.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/shp.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/geotiff.js"></script>
+<!-- Aplicativo (a ordem importa) -->
+<script src="js/core.js"></script>
+<script src="js/io.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/gps.js"></script>
+<script src="js/offline.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
