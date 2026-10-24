@@ -59,6 +59,22 @@ async def main():
             const f=activeLayer().source.getFeatures().slice(-1)[0]; return gArea(f.getGeometry()); }''')
         check(abs(area - 5000) < 0.01, f'polígono por distância/azimute = {area:.2f} m²')
 
+        # simbologia: estilo pronto, categorizado, formato de ponto, estilo por feição
+        await pg.evaluate("openSymbology(S.layers[0])"); await pg.wait_for_timeout(300)
+        await pg.click('#symBody [data-tab=prontos]'); await pg.click('[data-preset="1"]'); await pg.wait_for_timeout(200)
+        check(await pg.evaluate("S.layers[0].style.fillPattern==='diagonal'"), 'estilo pronto (APP com hachura) aplicado')
+        await pg.click('.modal .foot .primary')
+        bf = await pg.evaluate("S.layers.findIndex(L=>L.name.startsWith('Benfeitorias'))")
+        await pg.evaluate(f"openSymbology(S.layers[{bf}])"); await pg.click('#symBody [data-tab=categorias]')
+        await pg.select_option('#catField', 'nome'); await pg.click('#catBuild'); await pg.wait_for_timeout(200)
+        check(await pg.evaluate(f"S.layers[{bf}].style.symMode==='categorizado' && S.layers[{bf}].style.cats.length===2"), 'simbologia categorizada por campo')
+        await pg.click('#symBody [data-tab=simbolo]'); await pg.select_option('#spointShape', 'estrela'); await pg.wait_for_timeout(200)
+        check(await pg.evaluate(f"S.layers[{bf}].style.pointShape==='estrela'"), 'formato de ponto (estrela)')
+        await pg.click('.modal .foot .primary')
+        await pg.evaluate("const f=S.layers[1].source.getFeatures()[0]; f.set('_st',{stroke:'#00ff00',width:6}); commit();")
+        check(await pg.evaluate("legendItems().some(i=>i.label==='Estrada vicinal' && i.sym.width===6)"), 'estilo por feição aparece na legenda')
+        if SHOTS: await pg.screenshot(path=str(OUT / 'simbologia.png'))
+
         async def dl(js):
             async with pg.expect_download(timeout=90000) as d: await pg.evaluate(js)
             v = await d.value; path = OUT / v.suggested_filename; await v.save_as(path); return path
@@ -95,6 +111,22 @@ async def main():
         st = await pg.evaluate('gpsStats()')
         check(st['n'] == 11 and 55 < st['d'] < 65, f"GPS contínuo: {st['n']} pontos (1 imprecisa descartada), {st['d']:.1f} m")
         await pg.evaluate('GPS.session=null; gpsSave(); trackSource.clear(); gpsClose()')
+
+        # projetos salvos no aparelho (IndexedDB) e imagem raster persistida
+        await pg.evaluate("""async()=>{ const c=document.createElement('canvas'); c.width=c.height=64; const x=c.getContext('2d'); x.fillStyle='#c00'; x.fillRect(0,0,64,64);
+            const ctr=map.getView().getCenter(); addRaster('teste.png', await canvasBlob(c), [ctr[0]-200,ctr[1]-200,ctr[0]+200,ctr[1]+200], S.crs); await persistProject(); }""")
+        first = await pg.evaluate('S.projId')
+        await pg.evaluate("ACTIONS.novo()"); await pg.fill('#npName', 'Projeto B'); await pg.locator('.modal-bg').last.locator('.foot .primary').click(); await pg.wait_for_timeout(2500)
+        n = await pg.evaluate("async()=>(await dbAll('projetos')).length")
+        check(n >= 2 and await pg.evaluate('S.projName') == 'Projeto B', f'novo projeto criado sem perder o anterior ({n} projetos)')
+        await pg.reload(); await pg.wait_for_timeout(2500)
+        check(await pg.evaluate('S.projName') == 'Projeto B', 'reabre o último projeto ao recarregar')
+        await pg.evaluate(f"async()=>{{ await openRecord(await dbGet('projetos','{first}')); }}"); await pg.wait_for_timeout(600)
+        check(await pg.evaluate("S.layers.some(L=>L.type==='raster'&&L.name==='teste.png') && S.layers.some(L=>L.style&&L.style.symMode==='categorizado')"), 'projeto anterior reaberto com imagem e simbologia')
+        await pg.evaluate('openProjects()'); await pg.wait_for_timeout(500)
+        check(await pg.evaluate("document.querySelectorAll('.prjlist li[data-id]').length") >= 2, 'janela Meus projetos lista os projetos')
+        if SHOTS: await pg.screenshot(path=str(OUT / 'projetos.png'))
+        await pg.keyboard.press('Escape')
 
         # abertura offline
         await pg.wait_for_timeout(1500); await ctx.set_offline(True); await pg.reload(); await pg.wait_for_timeout(2500)

@@ -71,18 +71,12 @@ const DRAW={
       const km=step*4>=2000; const fmtv=v=>{ const x=km?v/1000:v; return Number.isInteger(x)?nfi(x):nf(x,x<10?1:0); };
       for(let s=0;s<=4;s++) txt(ctx,k,fmtv(step*s),bx+s*bm/4,y+bh+0.8,5.2,{align:'center',base:'top'});
       txt(ctx,k,km?'quilômetros':'metros',cx,y+bh+3.6,4.8,{align:'center',base:'top',color:'#444'}); } },
-  legenda(ctx,k,e){ frame(ctx,k,e); txt(ctx,k,e.p.title||'LEGENDA',e.x+3,e.y+2.8,7.5,{w:700,base:'top'}); const items=[];
-    [...S.layers].reverse().forEach(L=>{ if(!isVec(L)||!L.visible||!L.source.getFeatures().length) return; const t=dominantType(L); if(t) items.push({L,t}); });
-    const vl=S.layers.find(L=>isVec(L)&&L.visible&&L.style.showVtx&&dominantType(L)&&dominantType(L)!=='P'); if(vl) items.push({vtx:vl});
+  legenda(ctx,k,e){ frame(ctx,k,e); txt(ctx,k,e.p.title||'LEGENDA',e.x+3,e.y+2.8,7.5,{w:700,base:'top'}); const items=legendItems();
     const credit=e.p.credit?basemapCredit():''; const bottom=e.y+e.h-(credit?5:2); const rowH=5; const y0=e.y+8.2; const perCol=Math.max(1,Math.floor((bottom-y0)/rowH)); const cols=Math.min(3,Math.ceil(items.length/perCol)); const cw=(e.w-4)/Math.max(1,cols);
-    items.forEach((it,i)=>{ const col=Math.floor(i/perCol), row=i%perCol; if(col>=3) return; const x=e.x+3+col*cw, y=y0+row*rowH; const sw=7.5, sh=3.6;
-      if(it.vtx){ ctx.beginPath(); ctx.arc((x+sw/2)*k,(y+sh/2)*k,1.1*k,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle=it.vtx.style.vtxColor; ctx.lineWidth=0.45*k; ctx.stroke(); txt(ctx,k,fit(ctx,k,'Vértice ('+vtxName(it.vtx.style,1)+')',6.8,500,cw-sw-3),x+sw+2,y+sh/2,6.8,{base:'middle'}); return; }
-      const st=it.L.style; const lw=Math.min(0.7,Math.max(0.2,st.width*0.16)); const dash=st.dash==='dash'?[1.6,1]:st.dash==='dot'?[0.3,0.8]:st.dash==='dashdot'?[1.8,0.6,0.3,0.6]:[];
-      ctx.setLineDash(dash.map(d=>d*k)); ctx.strokeStyle=st.stroke; ctx.lineWidth=lw*k;
-      if(it.t==='A'){ ctx.fillStyle=hexA(st.fill,Math.max(0.18,st.fillOp)); ctx.fillRect(x*k,y*k,sw*k,sh*k); ctx.strokeRect(x*k,y*k,sw*k,sh*k); }
-      else if(it.t==='L'){ ctx.beginPath(); ctx.moveTo(x*k,(y+sh/2)*k); ctx.lineTo((x+sw)*k,(y+sh/2)*k); ctx.stroke(); }
-      else { ctx.setLineDash([]); ctx.beginPath(); ctx.arc((x+sw/2)*k,(y+sh/2)*k,1.3*k,0,Math.PI*2); ctx.fillStyle=st.stroke; ctx.fill(); ctx.strokeStyle='#111'; ctx.lineWidth=0.2*k; ctx.stroke(); }
-      ctx.setLineDash([]); txt(ctx,k,fit(ctx,k,it.L.name,6.8,500,cw-sw-3),x+sw+2,y+sh/2,6.8,{base:'middle'}); });
+    items.forEach((it,i)=>{ const col=Math.floor(i/perCol), row=i%perCol; if(col>=3) return; const x=e.x+3+col*cw+(it.indent?2.5:0), y=y0+row*rowH; const sw=7.5, sh=3.6; const avail=cw-sw-3-(it.indent?2.5:0);
+      if(it.head){ txt(ctx,k,fit(ctx,k,it.head,6.6,700,cw-2),x,y+sh/2,6.6,{w:700,base:'middle'}); return; }
+      if(it.vtx){ ctx.beginPath(); ctx.arc((x+sw/2)*k,(y+sh/2)*k,1.1*k,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle=it.vtx.style.vtxColor; ctx.lineWidth=0.45*k; ctx.stroke(); txt(ctx,k,fit(ctx,k,'Vértice ('+vtxName(it.vtx.style,1)+')',6.8,500,avail),x+sw+2,y+sh/2,6.8,{base:'middle'}); return; }
+      drawSym(ctx,x*k,y*k,sw*k,sh*k,it.sym,it.gc,k); txt(ctx,k,fit(ctx,k,it.label,6.8,500,avail),x+sw+2,y+sh/2,6.8,{base:'middle'}); });
     if(!items.length) txt(ctx,k,'Sem camadas visíveis.',e.x+3,y0,6.5,{base:'top',color:'#777'});
     if(credit) txt(ctx,k,fit(ctx,k,'Fundo: '+credit,4.8,500,e.w-6,false),e.x+3,e.y+e.h-1.6,4.8,{it:true,color:'#555'}); },
   coords(ctx,k,e){ frame(ctx,k,e); const r=refFeature(); txt(ctx,k,fit(ctx,k,e.p.title||'QUADRO DE COORDENADAS',7,700,e.w-4),e.x+e.w/2,e.y+2.4,7,{w:700,align:'center',base:'top'});
@@ -241,3 +235,14 @@ function injectGeoPDF(bin,W,H,e){ const pt=v=>(v*72/25.4).toFixed(3); const c=la
   let x='xref\n0 '+size+'\n0000000000 65535 f \n'; for(let i=1;i<size;i++) x+=offs[i]!==undefined?String(offs[i]).padStart(10,'0')+' 00000 n \n':'0000000000 65535 f \n';
   return body+x+trailer+'startxref\n'+body.length+'\n%%EOF'; }
 let LAYOUT_DEFAULTS=()=>({});
+
+/* Itens da legenda: camadas, categorias e feições com estilo próprio */
+function legendItems(){ const items=[];
+  [...S.layers].reverse().forEach(L=>{ if(!isVec(L)||!L.visible) return; const fs=L.source.getFeatures().filter(f=>!f.get('_kind')); if(!fs.length) return; const gc=dominantType(L)||'A'; const st=L.style;
+    if(st.symMode==='categorizado'&&st.catField&&(st.cats||[]).length){ items.push({head:L.name});
+      const present=new Set(fs.map(f=>String(f.get(st.catField)??'')));
+      st.cats.filter(c=>present.has(c.v)).forEach(c=>items.push({indent:true,gc,label:c.label||c.v||'(vazio)',sym:Object.assign({},st,{fill:c.color,pointFill:c.color,stroke:gc==='L'?c.color:darken(c.color)})})); }
+    else items.push({gc,label:L.name,sym:st});
+    const own=fs.filter(f=>f.get('_st')&&f.get('nome')).slice(0,8); own.forEach(f=>items.push({indent:true,gc:geomClass(f.getGeometry()),label:String(f.get('nome')),sym:Object.assign({},st,f.get('_st'))})); });
+  const vl=S.layers.find(L=>isVec(L)&&L.visible&&L.style.showVtx&&dominantType(L)&&dominantType(L)!=='P'); if(vl) items.push({vtx:vl});
+  return items; }

@@ -19,6 +19,7 @@
 <header class="top">
   <div class="brand"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".6"/><path d="M6 8.5l6.5-3 6 4-2.2 8.8-8.6.2z" fill="#f2b630" fill-opacity=".25" stroke="#f2b630" stroke-width="1.8" stroke-linejoin="round"/><circle cx="6" cy="8.5" r="1.6" fill="#e0218a"/><circle cx="12.5" cy="5.5" r="1.6" fill="#e0218a"/><circle cx="18.5" cy="9.5" r="1.6" fill="#e0218a"/><circle cx="16.3" cy="18.3" r="1.6" fill="#e0218a"/><circle cx="7.7" cy="18.5" r="1.6" fill="#e0218a"/></svg><span>Geo<b>Prancha</b></span></div>
   <input id="projName" class="projname" value="Projeto sem título" aria-label="Nome do projeto">
+  <span class="savestate" id="saveState" data-s="ok" aria-live="polite">Salvo</span>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="arquivo">Arquivo</button>
     <button role="tab" data-tab="desenhar" aria-selected="true">Desenhar</button>
@@ -28,6 +29,7 @@
     <button role="tab" data-tab="campo">Campo (GPS)</button>
   </nav>
   <div class="grow"></div>
+  <button class="iconbtn" data-act="projetos" title="Meus projetos" aria-label="Meus projetos" data-ic="pasta"></button>
   <button class="iconbtn" id="btnTheme" title="Alternar tema claro/escuro" aria-label="Alternar tema"><svg class="i sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></svg></button>
   <button class="btn-print" id="btnLayout" data-ic="layout" title="Compositor de impressão"><span>Compositor de impressão</span></button>
 </header>
@@ -35,10 +37,14 @@
 <div class="ribbon" id="ribbon">
   <div class="rpanel" data-panel="arquivo" hidden>
     <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="projetos" data-ic="pasta">Meus projetos</button>
       <button class="rbtn" data-act="novo" data-ic="novo">Novo projeto</button>
-      <button class="rbtn" data-act="abrir" data-ic="abrir">Abrir projeto</button>
-      <button class="rbtn" data-act="salvar" data-ic="salvar">Salvar projeto</button>
-    </div><div class="cap">Projeto</div></div>
+      <button class="rbtn" data-act="salvar" data-ic="salvar">Salvar agora</button>
+    </div><div class="cap">Projetos no aparelho</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="exportarproj" data-ic="exportar">Salvar cópia (.json)</button>
+      <button class="rbtn" data-act="abrir" data-ic="abrir">Abrir arquivo (.json)</button>
+    </div><div class="cap">Backup / outro aparelho</div></div>
     <div class="rgroup"><div class="row">
       <button class="rbtn" data-act="importar" data-ic="importar">Importar dados</button>
       <button class="rbtn" data-act="csv" data-ic="tabela">Coordenadas (CSV/TXT)</button>
@@ -88,6 +94,10 @@
     <div class="rgroup"><div class="row">
       <button class="rbtn" data-act="atributos" data-ic="atributos">Tabela de atributos</button>
     </div><div class="cap">Dados</div></div>
+    <div class="rgroup"><div class="row">
+      <button class="rbtn" data-act="simbologia" data-ic="simbologia">Simbologia da camada</button>
+      <button class="rbtn" data-act="estilofeicao" data-ic="pincel">Estilo da feição</button>
+    </div><div class="cap">Aparência</div></div>
   </div>
 
   <div class="rpanel" data-panel="medir" hidden>
@@ -216,8 +226,10 @@
 <script src="js/core.js"></script>
 <script src="js/io.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/symbology.js"></script>
 <script src="js/gps.js"></script>
 <script src="js/offline.js"></script>
+<script src="js/projects.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

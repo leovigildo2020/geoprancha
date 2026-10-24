@@ -7,6 +7,8 @@ GIS + CAD leve, em português, para **plantas topográficas e arquitetônicas** 
 - **Desenho CAD simples:** ponto, linha, polígono, retângulo, círculo, texto e cota. Inclui entrada por distância e azimute, coordenadas E/N, SNAP, ORTO e grade.
 - **Entrada precisa:** tabela de coordenadas (CSV/TXT), poligonal por azimute ou rumo e distância (com erro de fechamento) e retângulo por medidas.
 - **Rótulos automáticos:** vértices numerados, distâncias, azimute ou rumo, e área.
+- **Simbologia:** cores, espessuras e 5 tipos de linha; preenchimento sólido ou com hachuras; 8 formatos de ponto; estilo próprio por feição; simbologia categorizada por campo; 18 estilos prontos (APP, Reserva Legal, Supressão, PRAD, cursos d'água, marcos…). A legenda da prancha acompanha tudo.
+- **Meus projetos:** vários projetos guardados no aparelho, salvos automaticamente, com as imagens raster. Cópia em arquivo `.json` para backup ou para levar a outro aparelho.
 - **Memorial descritivo** gerado a partir do polígono selecionado.
 - **Sistemas de referência:** SIRGAS 2000 (geográficas e UTM 18S–25S, 18N–22N), WGS 84, SAD69 e plano local para plantas arquitetônicas.
 - **Importa:** Shapefile, KML/KMZ, GeoJSON, GPX, CSV, GeoTIFF e imagem com world file.

@@ -23,15 +23,19 @@ js/io.js            importação (SHP/KML/GeoJSON/GPX/CSV/GeoTIFF/world file), e
                     renderização fora da tela e GeoTIFF
 js/layout.js        compositor de impressão: elementos em mm, desenho em canvas, PDF via jsPDF,
                     GeoPDF (injeta /VP /Measure /GEO no PDF e reconstrói a tabela xref)
+js/symbology.js     simbologia: estilo efetivo (camada + categoria + _st da feição), formatos de ponto,
+                    hachuras, tipos de linha, estilos prontos, desenho de símbolos para legenda/prévias
 js/gps.js           caminhamento GPS (por vértice com média ponderada, contínuo com filtros), painel de campo
 js/offline.js       registro do service worker, instalação PWA, download de tiles para uso offline
+js/projects.js      Meus projetos: vários projetos no IndexedDB (salvamento automático, rasters incluídos),
+                    arquivo .geoprancha.json com imagens embutidas
 js/main.js          ligação da interface (ações, teclado, abas), projeto de exemplo, inicialização
 sw.js               cache do app (rede primeiro para HTML) e cache de tiles (cache primeiro)
 tools/build_single.py  gera dist/GeoPrancha.html em arquivo único (sem GPS/offline)
 tests/smoke_test.py    teste de ponta a ponta com Playwright
 ```
 
-Os scripts são clássicos (não são módulos ES) e compartilham o escopo global. **A ordem em `index.html` importa:** core → io → layout → gps → offline → main.
+Os scripts são clássicos (não são módulos ES) e compartilham o escopo global. **A ordem em `index.html` importa:** core → io → layout → symbology → gps → offline → projects → main.
 
 ## Conceitos-chave
 
@@ -41,12 +45,13 @@ Os scripts são clássicos (não são módulos ES) e compartilham o escopo globa
   - SRC em metros (UTM ou `LOCAL`): cálculo plano.
   - SRC geográfico ou 3857: cálculo geodésico (`ol.sphere`).
   - Use sempre `dist()`, `azim()`, `gArea()` e `gLength()`.
-- **Propriedades internas de feição** começam com `_` (`_fid`, `_kind` = `texto`|`cota`, `_tam`, `_rot`) e nunca são exportadas.
+- **Propriedades internas de feição** começam com `_` (`_fid`, `_kind` = `texto`|`cota`, `_tam`, `_rot`, `_st` = estilo próprio da feição) e nunca são exportadas.
+- **Simbologia:** `L.style` guarda o símbolo da camada (`stroke`, `width`, `dash`, `fill`, `fillOp`, `fillPattern`, `pointShape`, `pointFill`, `pointStroke`, `pointSize`) e o modo `symMode` (`unico`|`categorizado`, com `catField` e `cats`). Use `effStyle(L,f)` para o estilo final e `drawSym()` para desenhar símbolos em canvas.
 - **Histórico:** `commit()` grava um snapshot depois de cada alteração. Chame-o após qualquer edição de feições.
 - **Estilo de camada (`L.style`):** controla também os rótulos automáticos. Depois de alterar, chame `styleChanged(L)`.
 - **Compositor:** unidades em milímetros. `drawLayout(ctx, k)` desenha com `k` = pixels por mm, e o mesmo código serve para a pré-visualização e a exportação.
 - **GPS:** pontos guardados em lon/lat (WGS 84) e convertidos para `S.crs` apenas na exibição e ao salvar. A sessão é persistida em `localStorage` (`geoprancha:gps`). O GPS exige HTTPS ou localhost.
-- **Persistência:** salvamento automático em `localStorage` (`geoprancha:auto`) e arquivo `.geoprancha.json`. Camadas raster não são salvas.
+- **Persistência:** `scheduleSave()` → `persistProject()` grava o projeto aberto (`S.projId`) no IndexedDB `geoprancha` (stores `projetos` e `meta`), inclusive os blobs das camadas raster. O `localStorage` só é usado como reserva. O arquivo `.geoprancha.json` leva as imagens em base64.
 
 ## Testes
 

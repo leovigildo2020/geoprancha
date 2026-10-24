@@ -28,7 +28,7 @@ svg.i.sm{width:16px;height:16px}
 .top{display:flex;align-items:center;gap:14px;padding:6px max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));background:var(--panel);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:8px;font:700 17px/1 var(--cond);letter-spacing:.02em;white-space:nowrap}
 .brand b{color:var(--accent)}
-.projname{border:1px solid transparent;background:none;padding:3px 6px;border-radius:4px;color:var(--dim);min-width:0;width:220px;font-size:13px}
+.projname{border:1px solid transparent;background:none;padding:3px 6px;border-radius:4px;color:var(--dim);min-width:0;width:170px;font-size:13px}
 .projname:hover,.projname:focus{border-color:var(--line);color:var(--fg)}
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;align-self:flex-end;min-width:0;flex:0 1 auto}
 .tabs button{border:0;background:none;padding:8px 14px 9px;font:600 13px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-radius:6px 6px 0 0;white-space:nowrap}
@@ -225,3 +225,27 @@ svg.i.sm{width:16px;height:16px}
 .gp-prog i{display:block;height:100%;width:0;background:#06b6d4;transition:width .2s}
 @media (max-width:900px){ .gpspanel{bottom:8px;width:calc(100% - 16px)} }
 body:has(#gpsPanel:not([hidden])) .toast{bottom:auto;top:calc(150px + env(safe-area-inset-top))}
+
+/* Projetos e simbologia */
+.savestate{font:600 11px var(--cond);letter-spacing:.06em;text-transform:uppercase;color:var(--ok);white-space:nowrap;margin-bottom:5px;align-self:flex-end}
+.savestate[data-s="saving"]{color:var(--dim)} .savestate[data-s="err"]{color:var(--danger)}
+.prjlist{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px;max-height:min(52vh,460px);overflow:auto}
+.prj{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.prj:last-child{border-bottom:0} .prj.cur{background:var(--accent-soft)}
+.prj .pi{min-width:0;flex:1 1 220px} .prj .pi b{font-size:14.5px;margin-right:6px} .prj .pi small{display:block;color:var(--dim);margin-top:3px;font-size:12px}
+.prj .pa{display:flex;gap:5px;flex-wrap:wrap}
+.modal-bg.see{background:rgba(10,15,14,.18)}
+.symprev{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.symprev figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.symprev img{width:64px;height:36px} .symprev figcaption{font:600 10px var(--cond);text-transform:uppercase;letter-spacing:.06em;color:#555}
+.symhead{display:flex;align-items:center;gap:10px;margin-bottom:10px} .symhead img{width:64px;height:36px;background:#fff;border:1px solid var(--line);border-radius:5px}
+.swi{width:30px;height:20px;flex:none;background:#fff;border:1px solid var(--line);border-radius:3px}
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px}
+.preset{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel-2);border-radius:6px;padding:6px;text-align:left;font-size:12.5px}
+.preset:hover{border-color:var(--accent)} .preset img{width:56px;height:30px;background:#fff;border-radius:3px;flex:none}
+.cattab{width:100%;border-collapse:collapse;font-size:13px} .cattab th{text-align:left;font:600 11px var(--cond);text-transform:uppercase;letter-spacing:.06em;color:var(--dim);padding:5px 6px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel)}
+.cattab td{padding:4px 6px;border-bottom:1px solid var(--line)} .cattab input[type=color]{width:40px;height:26px;border:1px solid var(--line);border-radius:4px;padding:1px;background:var(--bg)} .cattab td.num{font-family:var(--mono);color:var(--dim);text-align:right}
+.modal .seg{flex-wrap:wrap}
+@media (max-width:900px){ .savestate{display:none} }
+.pair select{flex:1;min-width:0}.pair input[type=number]{max-width:72px}
+@media (max-width:1400px){.tabs button{padding:8px 10px 9px}}

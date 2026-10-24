@@ -59,15 +59,15 @@ async function importGeoTIFF(file){ busy('Lendo GeoTIFF…'); const tiff=await G
     for(let i=0,j=0;i<w*h;i++,j+=k){ d[i*4]=rgb[j]*f; d[i*4+1]=rgb[j+1]*f; d[i*4+2]=rgb[j+2]*f; d[i*4+3]=k===4?rgb[j+3]:255; if(k===4&&f!==1) d[i*4+3]=rgb[j+3]>0?255:0; } }
   else { const r=(await img.readRasters({width:w,height:h,samples:[0],interleave:true})); let mn=Infinity,mx=-Infinity; for(const v of r){ if(v===nd||!isFinite(v)) continue; if(v<mn) mn=v; if(v>mx) mx=v; } const sp=(mx-mn)||1;
     for(let i=0;i<r.length;i++){ const v=r[i]; if(v===nd||!isFinite(v)){ d[i*4+3]=0; continue; } const g=Math.round((v-mn)/sp*255); d[i*4]=d[i*4+1]=d[i*4+2]=g; d[i*4+3]=255; } }
-  ctx.putImageData(id,0,0); const url=URL.createObjectURL(await canvasBlob(cv)); addRaster(file.name,url,bbox,code); return 1; }
+  ctx.putImageData(id,0,0); addRaster(file.name,await canvasBlob(cv),bbox,code); return 1; }
 async function importWorldImage(imgFile,wfFile,prjFile){ const wf=(await wfFile.text()).trim().split(/\s+/).map(parseFloat); if(wf.length<6||wf.some(isNaN)) throw new Error('arquivo de georreferência inválido');
   const [A,D,B,E,C,F]=wf; if(Math.abs(D)>1e-9||Math.abs(B)>1e-9) toast('A imagem tem rotação no world file; ela será exibida sem rotação.',5000);
   const url=URL.createObjectURL(imgFile); const im=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
   const minx=C-A/2, maxy=F-E/2, maxx=minx+A*im.naturalWidth, miny=maxy+E*im.naturalHeight;
   let code=prjFile?detectCRSfromWKT(await prjFile.text()):null; if(!code){ busy(false); code=await askCRS(`Em qual SRC está a imagem “${imgFile.name}”?`,isMetric()&&!isLocal()?S.crs:'EPSG:4674'); if(!code) return 0; }
-  addRaster(imgFile.name,url,[minx,miny,maxx,maxy],code); return 1; }
-function addRaster(name,url,extent,code){ const proj=isLocal()?'LOCAL':code; const src=new ol.source.ImageStatic({url,imageExtent:extent,projection:proj,interpolate:true});
-  createRasterLayer(name,new ol.layer.Image({source:src})); zoomToExtent(isLocal()?extent:ol.proj.transformExtent(extent,code,S.crs),22); toast('Imagem carregada: '+name); }
+  URL.revokeObjectURL(url); addRaster(imgFile.name,imgFile,[minx,miny,maxx,maxy],code); return 1; }
+function addRaster(name,blob,extent,code,o={}){ const proj=isLocal()?'LOCAL':code; const url=URL.createObjectURL(blob); const src=new ol.source.ImageStatic({url,imageExtent:extent,projection:proj,interpolate:true});
+  const L=createRasterLayer(name,new ol.layer.Image({source:src}),o); L.src={blob,extent,code}; if(o.zoom!==false){ zoomToExtent(isLocal()?extent:ol.proj.transformExtent(extent,code,S.crs),22); toast('Imagem carregada: '+name); scheduleSave(); } return L; }
 
 /* ===================== Entrada por tabela de coordenadas ===================== */
 function splitTable(text){ const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean); if(!lines.length) return [];

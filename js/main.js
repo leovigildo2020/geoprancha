@@ -23,11 +23,12 @@ try{ const t=localStorage.getItem('geoprancha:theme'); if(t) document.documentEl
 
 /* Ações */
 const ACTIONS={
-  novo:()=>modal({title:'Novo projeto',body:`<p style="margin-top:0">O projeto atual será fechado. Salve-o antes se quiser guardá-lo.</p><div class="form"><label for="npName">Nome</label><input type="text" id="npName" value="Novo projeto"><label for="npCrs">SRC</label><select id="npCrs">${crsOptions(autoZone()||'EPSG:31982',false)}</select></div><p class="note">Para plantas arquitetônicas sem coordenadas, escolha “Plano local”.</p>`,
-    buttons:[{label:'Cancelar'},{label:'Criar',primary:true,action:()=>{ const name=$('#npName').value||'Novo projeto', crs=$('#npCrs').value; const c=isLocal()||crs==='LOCAL'?[0,0]:ol.proj.transform(map.getView().getCenter(),S.crs,crs);
+  novo:()=>modal({title:'Novo projeto',body:`<p style="margin-top:0">O projeto atual continua guardado em <b>Meus projetos</b>.</p><div class="form"><label for="npName">Nome</label><input type="text" id="npName" value="Novo projeto"><label for="npCrs">SRC</label><select id="npCrs">${crsOptions(autoZone()||'EPSG:31982',false)}</select></div><p class="note">Para plantas arquitetônicas sem coordenadas, escolha “Plano local”.</p>`,
+    buttons:[{label:'Cancelar'},{label:'Criar',primary:true,action:async()=>{ await persistProject(); const name=$('#npName').value||'Novo projeto', crs=$('#npCrs').value; S.projCreated=Date.now(); const c=isLocal()||crs==='LOCAL'?[0,0]:ol.proj.transform(map.getView().getCenter(),S.crs,crs);
       loadProject({name,crs,view:{center:crs==='LOCAL'?[0,0]:c,resolution:crs==='LOCAL'?0.05:map.getView().getResolution()*gpu(S.crs,map.getView().getCenter())/gpu(crs,c)},basemap:crs==='LOCAL'?'nenhum':S.basemap,layers:[]}); S.layout=null; createVectorLayer({name:crs==='LOCAL'?'Paredes':'Limites'}); if(crs==='LOCAL'){ S.gridSnap=true; S.gridStep=0.05; $('#tgGridSnap').setAttribute('aria-pressed','true'); $('#gridStep').value='0.05'; activeLayer().style=Object.assign(activeLayer().style,{stroke:'#1f2933',fill:'#9aa5b1',fillOp:0.08,width:3,showVtx:false,showDist:true,showArea:true,areaUnit:'m2',labelColor:'#111111'}); styleChanged(activeLayer()); renderLayers(); } resetHistory(); scheduleSave(); }}]}),
-  abrir:()=>$('#fileProject').click(),
-  salvar:()=>{ download(new Blob([JSON.stringify(projectObj())],{type:'application/json'}),safeName(S.projName)+'.geoprancha.json'); toast('Projeto salvo. Imagens carregadas não entram no arquivo.'); },
+  abrir:()=>$('#fileProject').click(), projetos:()=>openProjects(), exportarproj:()=>exportProjectFile(),
+  simbologia:()=>openSymbology(), estilofeicao:()=>openFeatureStyle(),
+  salvar:async()=>{ clearTimeout(saveT); await persistProject(); toast($('#saveState')?.dataset.s==='err'?'Não foi possível salvar no aparelho. Use “Salvar cópia (.json)”.':'Projeto salvo neste aparelho. Ele aparece em Meus projetos.'); },
   importar:()=>{ $('#fileImport').accept='.zip,.shp,.dbf,.prj,.cpg,.shx,.kml,.kmz,.geojson,.json,.gpx,.csv,.txt,.tif,.tiff,.png,.jpg,.jpeg,.pgw,.jgw,.pngw,.jpgw,.wld'; $('#fileImport').click(); },
   raster:()=>{ $('#fileImport').accept='.tif,.tiff,.png,.jpg,.jpeg,.pgw,.jgw,.pngw,.jpgw,.wld,.prj'; $('#fileImport').click(); toast('GeoTIFF sozinho, ou imagem + world file (.pgw/.jgw) selecionados juntos.',4500); },
   csv:()=>openCoordsModal(), azdist:()=>openTraverseModal(), retmed:()=>openRectModal(), irpara:()=>openGotoModal(), xyz:()=>openXYZModal(),
@@ -52,7 +53,7 @@ function moveLayer(dir){ const L=activeLayer(); if(!L) return; const i=S.layers.
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-tool]'); if(t&&!t.closest('.modal')){ setTool(t.dataset.tool); return; } const a=e.target.closest('[data-act]'); if(a&&ACTIONS[a.dataset.act]&&!a.closest('.modal')){ ACTIONS[a.dataset.act](); } });
 $('#btnLayout').addEventListener('click',()=>openLayout());
 $('#fileImport').addEventListener('change',e=>{ importFiles(e.target.files); e.target.value=''; });
-$('#fileProject').addEventListener('change',async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return; try{ const p=JSON.parse(await f.text()); if(p.app!=='GeoPrancha') throw new Error('arquivo não é um projeto GeoPrancha'); loadProject(p); toast('Projeto aberto: '+S.projName); }catch(err){ toast('Não foi possível abrir: '+err.message,6000); } });
+$('#fileProject').addEventListener('change',async e=>{ const f=e.target.files[0]; e.target.value=''; if(f) importProjectFile(f); });
 const mw=$('#mapwrap'); mw.addEventListener('dragover',e=>{ e.preventDefault(); }); mw.addEventListener('drop',e=>{ e.preventDefault(); if(e.dataTransfer.files.length) importFiles(e.dataTransfer.files); });
 
 /* Barra CAD */
@@ -86,7 +87,7 @@ window.addEventListener('resize',()=>{ if(!$('#lay').hidden){ sizeCanvas(); LS.m
 LAYOUT_DEFAULTS=()=>({conteudo:'PLANTA TOPOGRÁFICA',imovel:S.projName,municipio:'',data:todayBR()});
 
 /* ===================== Exemplo inicial ===================== */
-function loadSample(){ const P=ll=>ol.proj.fromLonLat(ll,S.crs);
+function loadSample(){ S.projId=uid(); S.projCreated=Date.now(); const P=ll=>ol.proj.fromLonLat(ll,S.crs);
   const ring=[[-48.3060,-13.4935],[-48.2985,-13.4928],[-48.2962,-13.4990],[-48.3008,-13.5021],[-48.3071,-13.4987]].map(P); ring.push(ring[0]);
   const lim=createVectorLayer({name:'Limite do imóvel (exemplo)',style:{stroke:'#ffd21f',fill:'#ffd21f',fillOp:0.1,width:2.6,showVtx:true,vtxPrefix:'M-',showDist:true,showAz:false,showArea:true,labelField:'nome'},
     features:[new ol.Feature({geometry:new ol.geom.Polygon([ring]),nome:'Fazenda Exemplo'})]});
@@ -99,10 +100,10 @@ function loadSample(){ const P=ll=>ol.proj.fromLonLat(ll,S.crs);
   LY().refFid=lim.source.getFeatures()[0].get('_fid'); }
 
 /* ===================== Início ===================== */
-(function init(){ renderCRSSelect(); renderBasemapUI(); bindView(); let restored=false;
-  try{ const s=localStorage.getItem('geoprancha:auto'); if(s){ const p=JSON.parse(s); if(p&&p.layers){ loadProject(p); restored=true; } } }catch(e){ console.warn(e); }
-  if(!restored){ applyBasemap(); loadSample(); }
+(async function init(){ renderCRSSelect(); renderBasemapUI(); bindView(); let restored=false;
+  try{ restored=!!(await startProjects()); }catch(e){ console.warn(e); }
+  if(!restored){ applyBasemap(); loadSample(); persistProject(); }
   setTool('select'); resetHistory(); setTimeout(gpsResumeCheck,800); renderFeaturePanel(); showTab('desenhar');
   let framed=false; try{ framed=window.self!==window.top; }catch(e){ framed=true; }
   if(framed){ setTimeout(()=>modal({title:'Abra o GeoPrancha direto no navegador',body:'<p style="margin-top:0">Este arquivo está sendo exibido dentro de um visualizador, que bloqueia os mapas de fundo e os downloads.</p><p>Abra o GeoPrancha direto no <b>Chrome</b> ou <b>Edge</b>, pelo endereço publicado (GitHub Pages) ou pelo app instalado. Todas as funções passam a funcionar.</p>',buttons:[{label:'Continuar assim mesmo',primary:true}]}),600); }
-  toast(restored?'Projeto anterior restaurado automaticamente.':'Bem-vindo! Um imóvel de exemplo foi carregado para você explorar. Use Arquivo › Novo projeto para começar o seu.',5500); })();
+  toast(restored?'Projeto “'+S.projName+'” reaberto. Seus outros projetos estão em Meus projetos.':'Bem-vindo! Um imóvel de exemplo foi carregado para você explorar. Use Arquivo › Novo projeto para começar o seu.',5500); })();
