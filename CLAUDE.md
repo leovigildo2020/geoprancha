@@ -25,6 +25,7 @@ js/layout.js        compositor de impressão: elementos em mm, desenho em canvas
                     GeoPDF (injeta /VP /Measure /GEO no PDF e reconstrói a tabela xref)
 js/symbology.js     simbologia: estilo efetivo (camada + categoria + _st da feição), formatos de ponto,
                     hachuras, tipos de linha, estilos prontos, desenho de símbolos para legenda/prévias
+js/identify.js      ferramenta Informações (ⓘ): popup com atributos “campo: valor” e medidas da geometria
 js/gps.js           caminhamento GPS (por vértice com média ponderada, contínuo com filtros), painel de campo
 js/offline.js       registro do service worker, instalação PWA, download de tiles para uso offline
 js/projects.js      Meus projetos: vários projetos no IndexedDB (salvamento automático, rasters incluídos),
@@ -35,7 +36,7 @@ tools/build_single.py  gera dist/GeoPrancha.html em arquivo único (sem GPS/offl
 tests/smoke_test.py    teste de ponta a ponta com Playwright
 ```
 
-Os scripts são clássicos (não são módulos ES) e compartilham o escopo global. **A ordem em `index.html` importa:** core → io → layout → symbology → gps → offline → projects → main.
+Os scripts são clássicos (não são módulos ES) e compartilham o escopo global. **A ordem em `index.html` importa:** core → io → layout → symbology → identify → gps → offline → projects → main.
 
 ## Conceitos-chave
 

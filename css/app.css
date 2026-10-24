@@ -249,3 +249,16 @@ body:has(#gpsPanel:not([hidden])) .toast{bottom:auto;top:calc(150px + env(safe-a
 @media (max-width:900px){ .savestate{display:none} }
 .pair select{flex:1;min-width:0}.pair input[type=number]{max-width:72px}
 @media (max-width:1400px){.tabs button{padding:8px 10px 9px}}
+
+/* Popup de informações (ⓘ) */
+.idpop{width:min(330px,calc(100vw - 32px));padding:0;overflow:hidden}
+.idpop header{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 11px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+.idpop header svg{color:var(--sel)} .idpop .ttl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.idpop .nav{border:1px solid var(--line);background:var(--panel);border-radius:4px;width:26px;height:26px;font-size:16px;line-height:1}
+.idpop .cnt{font:600 12px var(--mono);color:var(--dim)}
+.idpop .x{float:none;border:0;background:none;color:var(--dim);font-size:20px;line-height:1;padding:0 4px}
+.idbody{max-height:min(46vh,340px);overflow:auto;padding:8px 12px 10px}
+.idbody p{margin:0 0 5px;font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.idbody b{font-weight:700} .idbody .nd{color:var(--dim)} .idbody .sub{margin:8px 0 5px}
+.idpop footer{display:flex;gap:5px;padding:8px 10px;border-top:1px solid var(--line);flex-wrap:wrap}
+.idpop footer .tb{flex:1;justify-content:center}

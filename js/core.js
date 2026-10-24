@@ -77,6 +77,7 @@ const ICONS={
  gps:'<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><path d="M9 10.5l2 2 4-4"/>',
  nuvem:'<path d="M7 18.5h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.1 9.6 4.5 4.5 0 0 0 7 18.5z"/><path d="M12 10.5v6M9.5 14l2.5 2.5 2.5-2.5"/>',
  instalar:'<rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M12 7v7M9.5 11.5L12 14l2.5-2.5M10.5 18.5h3"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.6" r="1.1" fill="currentColor"/>',
  pasta:'<path d="M3.5 6.5h6l2 2h9v10.5h-17z"/><path d="M3.5 10.5h17"/>',
  simbologia:'<circle cx="7" cy="7" r="3" fill="currentColor" fill-opacity=".25"/><path d="M14 4.5l3.5 6h-7z"/><rect x="4" y="14" width="6" height="6"/><path d="M13.5 14l7 6M20.5 14l-7 6" opacity=".7"/>',
  pincel:'<path d="M19.5 3.5l-9 9"/><path d="M10.5 12.5c-2.5 0-4 1.5-4 3.5 0 1.6-1 2.6-2.5 3 3.5 1 8 .5 8.5-3.5.2-1.3-.6-2.4-2-3z"/>',
@@ -298,11 +299,13 @@ const HINTS={
   cota:'<b>Cota:</b> clique no ponto inicial e no final. A distância aparece automaticamente com traços de cota.',
   mdist:'<b>Medir distância:</b> clique os pontos, duplo clique conclui. Os valores ficam no mapa até você limpar.',
   marea:'<b>Medir área:</b> clique os vértices, duplo clique fecha o polígono.',
+  info:'<b>Informações:</b> toque numa feição para ver os atributos. Se houver feições sobrepostas, use as setas ‹ › do popup.',
   coord:'<b>Coordenada:</b> clique em qualquer ponto para ver E/N e latitude/longitude.'
 };
 function setTool(t){
   [I.draw,I.modify,I.translate].forEach(x=>x&&map.removeInteraction(x)); I.draw=I.modify=I.translate=null; I.sketch=null;
   map.removeInteraction(I.select); if(I.coordKey){ ol.Observable.unByKey(I.coordKey); I.coordKey=null; }
+  if(typeof closeIdentify==='function') closeIdentify();
   S.tool=t; $$('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t?'true':'false'));
   $('#hint').innerHTML=HINTS[t]||''; $('#cadbar').hidden=!['ponto','linha','poligono','cota'].includes(t); $('#map').classList.toggle('crosshair',!['select','vertices','mover'].includes(t));
   if(['select','vertices','mover'].includes(t)){ map.addInteraction(I.select);
@@ -311,6 +314,7 @@ function setTool(t){
   else if(['ponto','linha','poligono','retangulo','circulo','texto','cota'].includes(t)) startDraw(t);
   else if(t==='mdist'||t==='marea') startMeasure(t==='mdist'?'LineString':'Polygon');
   else if(t==='coord') I.coordKey=map.on('singleclick',e=>showCoordPopup(e.coordinate));
+  else if(t==='info') I.coordKey=map.on('singleclick',e=>identifyAt(e));
   refreshSnaps(); }
 function cadGeom(type){ return function(coords,geom){ const pts=type==='Polygon'?coords[0]:coords;
     if(pts.length&&!I.noCad){ const last=pts[pts.length-1];

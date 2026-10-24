@@ -76,7 +76,7 @@ document.addEventListener('keydown',e=>{ const tag=(e.target.tagName||'').toLowe
   if(e.key==='Escape'){ if(I.draw&&I.sketch) I.draw.abortDrawing(); else if(S.tool!=='select') setTool('select'); else clearSelection(); return; }
   if(e.key==='Backspace'&&I.draw&&I.sketch){ e.preventDefault(); I.draw.removeLastPoint(); return; }
   if((e.key==='Delete'||e.key==='Backspace')&&selFeature()){ e.preventDefault(); deleteSelected(); return; }
-  const sc={v:'select',p:'poligono',l:'linha',t:'texto',c:'cota',e:'vertices',m:'mover'}[e.key.toLowerCase()]; if(sc&&!e.ctrlKey&&!e.metaKey&&!e.altKey) setTool(sc); });
+  const sc={i:'info',v:'select',p:'poligono',l:'linha',t:'texto',c:'cota',e:'vertices',m:'mover'}[e.key.toLowerCase()]; if(sc&&!e.ctrlKey&&!e.metaKey&&!e.altKey) setTool(sc); });
 
 /* Compositor */
 $('#layBack').addEventListener('click',closeLayout);

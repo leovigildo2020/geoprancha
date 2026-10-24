@@ -75,6 +75,15 @@ async def main():
         check(await pg.evaluate("legendItems().some(i=>i.label==='Estrada vicinal' && i.sym.width===6)"), 'estilo por feição aparece na legenda')
         if SHOTS: await pg.screenshot(path=str(OUT / 'simbologia.png'))
 
+        # ferramenta Informações (ⓘ)
+        await pg.click('[data-tab=desenhar]'); await pg.click('.rpanel[data-panel=desenhar] [data-tool=info]')
+        px = await pg.evaluate("(()=>{ const f=S.layers[0].source.getFeatures()[0]; const c=f.getGeometry().getInteriorPoint().getCoordinates(); const p=map.getPixelFromCoordinate(c); const r=map.getTargetElement().getBoundingClientRect(); return [r.left+p[0], r.top+p[1]]; })()")
+        await pg.mouse.click(px[0], px[1]); await pg.wait_for_timeout(500)
+        html = await pg.evaluate("document.querySelector('.idpop')?.innerHTML||''")
+        check('<b>nome:</b> Fazenda Exemplo' in html and '<b>Área:</b>' in html, 'popup de Informações com campo: valor e área')
+        if SHOTS: await pg.screenshot(path=str(OUT / 'informacoes.png'))
+        await pg.evaluate("setTool('select')")
+
         async def dl(js):
             async with pg.expect_download(timeout=90000) as d: await pg.evaluate(js)
             v = await d.value; path = OUT / v.suggested_filename; await v.save_as(path); return path
